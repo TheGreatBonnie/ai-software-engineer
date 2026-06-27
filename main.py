@@ -6,12 +6,12 @@ from src.sandbox import managed_sandbox
 
 
 def main() -> None:
-    settings = load_settings()
-
     if len(sys.argv) < 2:
         print("Usage: python main.py '<software request>'")
         print("Example: python main.py 'Build a CLI todo app with SQLite'")
         sys.exit(1)
+
+    settings = load_settings()
 
     user_request = sys.argv[1]
 
@@ -28,11 +28,7 @@ def main() -> None:
                 "messages": [
                     {
                         "role": "user",
-                        "content": (
-                            f"{user_request}\n\n"
-                            f"IMPORTANT: max_iterations={settings.max_iterations}. "
-                            f"Stop and report if you exceed this limit."
-                        ),
+                        "content": user_request,
                     }
                 ]
             },
