@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from deepagents import create_deep_agent
-from langchain.chat_models import init_chat_model
+from langchain_openrouter import ChatOpenRouter
 
 from src.config import Settings
 from src.models import Plan
@@ -21,7 +21,7 @@ def build_coordinator(
     settings: Settings,
     backend: Any = None,
 ):
-    model = init_chat_model(settings.model)
+    model = ChatOpenRouter(model=settings.model)
 
     planner_subagent = {
         "name": "planner",

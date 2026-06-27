@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 @dataclass
 class Settings:
     model: str = field(default_factory=lambda: os.getenv(
-        "AGENT_MODEL", "openrouter:anthropic/claude-sonnet-4-6"
+        "AGENT_MODEL", "openrouter/owl-alpha"
     ))
     e2b_api_key: str = field(default_factory=lambda: os.getenv("E2B_API_KEY", ""))
     max_iterations: int = 10

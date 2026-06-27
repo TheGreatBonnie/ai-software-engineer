@@ -12,6 +12,7 @@ dependencies = [
     "langchain-e2b>=0.0.4",
     "langchain-openrouter>=0.2.4",
     "python-dotenv>=1.0.1",
+    "rich>=15.0.0",
 ]
 
 [dependency-groups]
