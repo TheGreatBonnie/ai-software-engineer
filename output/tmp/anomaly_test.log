@@ -1,0 +1,25 @@
+2024-01-15T08:00:00 INFO app.server: Server started
+2024-01-15T08:00:01 INFO app.db: Connected to database
+2024-01-15T09:00:00 INFO app.server: Request GET /index 200
+2024-01-15T09:01:00 INFO app.server: Request GET /about 200
+2024-01-15T09:02:00 INFO app.server: Request POST /login 200
+2024-01-15T09:03:00 ERROR app.auth: Login failed for user alice
+2024-01-15T09:03:01 ERROR app.auth: Login failed for user bob
+2024-01-15T09:03:02 ERROR app.auth: Login failed for user charlie
+2024-01-15T09:03:03 ERROR app.auth: Login failed for user dave
+2024-01-15T09:03:04 ERROR app.auth: Login failed for user eve
+2024-01-15T09:03:05 ERROR app.auth: Login failed for user frank
+2024-01-15T09:03:06 ERROR app.auth: Login failed for user grace
+2024-01-15T09:03:07 ERROR app.auth: Login failed for user henry
+2024-01-15T09:03:08 ERROR app.auth: Login failed for user iris
+2024-01-15T09:03:09 ERROR app.auth: Login failed for user jack
+2024-01-15T09:03:10 CRITICAL app.auth: Brute force detected from IP 10.0.0.1
+2024-01-15T09:04:00 INFO app.server: Request GET /dashboard 200
+2024-01-15T09:05:00 WARN app.memory: Memory usage high at 75%
+2024-01-15T10:00:00 INFO app.job: Hourly backup started
+2024-01-15T10:05:00 INFO app.job: Backup completed successfully
+2024-01-15T10:10:00 INFO app.server: Request GET /api/data 200
+2024-01-15T23:30:00 ERROR app.db: Connection pool exhausted
+2024-01-15T23:30:01 ERROR app.db: Query timeout
+2024-01-15T23:30:02 ERROR app.db: Write failed
+2024-01-15T23:31:00 WARN app.memory: Memory leak suspected in worker 3

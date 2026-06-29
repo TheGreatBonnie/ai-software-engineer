@@ -1,0 +1,15 @@
+2024-01-15T08:30:00 INFO app.server: Server started on port 8080
+2024-01-15T08:30:01 INFO app.db: Database connection established
+2024-01-15T08:31:00 INFO app.server: Request GET /api/users 200
+2024-01-15T08:31:05 INFO app.server: Request GET /api/products 200
+2024-01-15T08:32:00 WARN app.cache: Cache miss for key user:1234
+2024-01-15T08:32:10 ERROR app.db: Connection timeout after 30s
+2024-01-15T08:32:15 ERROR app.db: Retry failed for query SELECT * FROM users
+2024-01-15T08:33:00 INFO app.server: Request POST /api/orders 201
+2024-01-15T08:33:30 ERROR app.auth: Invalid token for user admin@example.com
+2024-01-15T08:34:00 INFO app.server: Request GET /api/health 200
+2024-01-15T08:35:00 WARn app.memory: Memory usage at 85%
+2024-01-15T08:35:30 INFO app.server: Request DELETE /api/users/42 204
+2024-01-15T08:36:00 CRITICAL app.db: Disk space critical on /var/lib/data
+2024-01-15T08:36:30 INFO app.server: Request GET /api/stats 200
+2024-01-15T08:37:00 INFO app.job: Scheduled job cleanup completed

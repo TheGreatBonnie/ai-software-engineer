@@ -1,0 +1,5 @@
+RPC server: e2b.local
+service: foo (1) version 0
+address: 127.0.0.1
+protocol: tcp
+port: 0

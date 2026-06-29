@@ -9,6 +9,7 @@ from src.config import load_settings
 from src.coordinator import build_coordinator
 from src.display import AgentDisplay
 from src.sandbox import managed_sandbox
+from pathlib import Path
 
 
 def main() -> None:
@@ -67,6 +68,33 @@ def main() -> None:
                         display.print_message(msg)
                     live.start()
                     live.update(display.spinner)
+
+        console.print("\n[bold blue]━━━ Downloading artifacts ━━━[/]")
+
+        sandbox_result = backend.execute(
+            "find / -maxdepth 5 -type f ! -path '*/.*' "
+            "! -path '/proc/*' ! -path '/sys/*' ! -path '/dev/*' "
+            "! -path '/usr/*' ! -path '/lib/*' ! -path '/etc/*' "
+            "! -path '/var/*' 2>/dev/null"
+        )
+        sandbox_files = [
+            f.strip()
+            for f in sandbox_result.output.splitlines()
+            if f.strip()
+        ]
+
+        if sandbox_files:
+            downloads = backend.download_files(sandbox_files)
+            for dl in downloads:
+                if dl.content is not None:
+                    target = Path("output") / dl.path.lstrip("/")
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    target.write_bytes(dl.content)
+                    console.print(f"  [green]✓[/] {dl.path}")
+                else:
+                    console.print(f"  [red]✗[/] {dl.path} — {dl.error}")
+        else:
+            console.print("  [yellow]No files found in sandbox[/]")
 
     console.print()
     console.print("[bold green]━━━ ✓ Complete ━━━[/]")

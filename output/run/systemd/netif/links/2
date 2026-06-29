@@ -1,0 +1,7 @@
+# This is private data. Do not parse.
+ADMIN_STATE=pending
+OPER_STATE=routable
+CARRIER_STATE=carrier
+ADDRESS_STATE=routable
+IPV4_ADDRESS_STATE=routable
+IPV6_ADDRESS_STATE=degraded
