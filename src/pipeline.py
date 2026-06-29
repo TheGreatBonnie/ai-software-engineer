@@ -2,6 +2,8 @@ import time
 import json
 from typing import Any, Callable
 
+from langchain_core.messages import ToolMessage
+
 from src.config import Settings
 from src.coordinator import build_coordinator
 from src.models import (
@@ -63,6 +65,13 @@ class WorkflowPipeline:
                     full_messages.extend(messages)
 
         for msg in reversed(full_messages):
+            if isinstance(msg, ToolMessage) and msg.name == "task" and msg.content:
+                try:
+                    return json.loads(msg.content)
+                except (json.JSONDecodeError, TypeError):
+                    pass
+
+        for msg in reversed(full_messages):
             if hasattr(msg, "content") and isinstance(msg.content, str) and msg.content.strip():
                 try:
                     return json.loads(msg.content)
@@ -70,13 +79,22 @@ class WorkflowPipeline:
                     return {"raw": msg.content}
         return {}
 
+    def _parse_output(self, model_class: type, data: dict, phase: str):
+        try:
+            return model_class(**data)
+        except Exception as e:
+            raise RuntimeError(
+                f"{phase} output did not match {model_class.__name__} schema: {e}. "
+                f"Keys received: {list(data.keys())}. Raw preview: {str(data)[:300]}"
+            )
+
     def _phase_plan(self, request: str) -> Plan:
         self._emit("phase_start", {"phase": "plan", "label": "Planning", "color": "magenta"})
         data = self._invoke_agent(
             f"Execute the planner phase for this request: {request}\n\n"
             "Return valid JSON matching the Plan schema."
         )
-        plan = Plan(**data)
+        plan = self._parse_output(Plan, data, "Planner")
         self.state.plan = plan
         self._emit("phase_output", {"phase": "plan", "output": plan})
         return plan
@@ -88,7 +106,7 @@ class WorkflowPipeline:
             f"Execute the coder phase.\n\nPlan:\n{plan_json}\n\n"
             "Return valid JSON matching the CodeOutput schema."
         )
-        code = CodeOutput(**data)
+        code = self._parse_output(CodeOutput, data, "Coder")
         self.state.code = code
         self._emit("phase_output", {"phase": "code", "output": code})
         return code
@@ -103,7 +121,7 @@ class WorkflowPipeline:
             f"Code context:\n{context}\n\n"
             "Return valid JSON matching the TestSuiteResult schema."
         )
-        test_result = TestSuiteResult(**data)
+        test_result = self._parse_output(TestSuiteResult, data, "Tester")
         self.state.test_results.append(test_result)
         self._emit("phase_output", {"phase": "test", "output": test_result})
         return test_result
@@ -114,7 +132,7 @@ class WorkflowPipeline:
             f"Execute the reviewer phase.\n\nTest results:\n{test_result.model_dump_json()}\n\n"
             "Return valid JSON matching the ReviewFindings schema."
         )
-        review = ReviewFindings(**data)
+        review = self._parse_output(ReviewFindings, data, "Reviewer")
         self.state.review = review
         self._emit("phase_output", {"phase": "review", "output": review})
         return review
@@ -127,7 +145,7 @@ class WorkflowPipeline:
             f"Review findings:\n{review_json}\n\n"
             "Return valid JSON matching the CodeOutput schema."
         )
-        code = CodeOutput(**data)
+        code = self._parse_output(CodeOutput, data, "Fixer")
         self._emit("phase_output", {"phase": "fix", "output": code})
         return code
 
@@ -137,7 +155,7 @@ class WorkflowPipeline:
             "Execute the documenter phase.\n\n"
             "Return valid JSON matching the DocOutput schema."
         )
-        doc = DocOutput(**data)
+        doc = self._parse_output(DocOutput, data, "Documenter")
         self.state.doc = doc
         self._emit("phase_output", {"phase": "document", "output": doc})
         return doc
