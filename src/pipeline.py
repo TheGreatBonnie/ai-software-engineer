@@ -211,7 +211,7 @@ class WorkflowPipeline:
             self.iteration_count += 1
 
         self.state.status = "escalated"
-        self.state.iterations_used = self.iteration_count
+        self.state.iterations_used = self.iteration_count + 1
         self.state.error = "Exited loop without completing"
         return self.state
 
