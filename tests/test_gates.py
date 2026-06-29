@@ -1,12 +1,13 @@
-import pytest
 from src.models import (
     Plan, FileChange, CodeOutput,
-    TestSuiteResult, ReviewFindings, ReviewIssue, DocOutput,
+    TestSuiteResult, DocOutput,
 )
 from src.gates import (
     gate_plan_review,
     gate_coverage_minimum,
     gate_regression_check,
+    gate_static_analysis,
+    gate_sandbox_verification,
     gate_plan_traceability,
     gate_doc_completeness,
 )
@@ -70,6 +71,43 @@ class TestGateRegression:
         gate = gate_regression_check(current, [])
         assert gate.passed is True
         assert any("insufficient" in issue.lower() for issue in gate.issues)
+
+    def test_new_failure_detected(self):
+        old = TestSuiteResult(passed=10, failed=1, errors=["old error"])
+        current = TestSuiteResult(
+            passed=9, failed=2,
+            errors=["old error", "new error"],
+        )
+        gate = gate_regression_check(current, [old])
+        assert len([i for i in gate.issues if "Regression" in i]) > 0
+
+
+class FakeBackend:
+    def execute(self, cmd):
+        return type("Result", (), {"output": "", "exit_code": 0})()
+
+
+class TestGateStaticAnalysis:
+    def test_no_backend_skips(self):
+        result = gate_static_analysis(None)
+        assert result.passed is True
+        assert any("No sandbox" in i for i in result.issues)
+
+    def test_with_backend_passes(self):
+        result = gate_static_analysis(FakeBackend())
+        assert result.passed is True
+
+
+class TestGateSandboxVerification:
+    def test_no_backend_skips(self):
+        code = CodeOutput()
+        result = gate_sandbox_verification(None, code)
+        assert result.passed is True
+
+    def test_with_empty_code_passes(self):
+        code = CodeOutput()
+        result = gate_sandbox_verification(FakeBackend(), code)
+        assert result.passed is True
 
 
 class TestGatePlanTraceability:

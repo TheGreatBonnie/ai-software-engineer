@@ -1,3 +1,5 @@
+import shlex
+
 from src.models import (
     Plan, CodeOutput, TestSuiteResult,
     DocOutput, GateResult,
@@ -55,6 +57,10 @@ def gate_plan_review(plan: Plan) -> GateResult:
     )
 
 
+def _cmd_exit_code(result) -> int:
+    return getattr(result, "exit_code", 0) if result else -1
+
+
 def gate_static_analysis(backend) -> GateResult:
     if not backend:
         return GateResult(
@@ -65,17 +71,15 @@ def gate_static_analysis(backend) -> GateResult:
     issues = []
     try:
         ruff_result = backend.execute("ruff check . 2>&1 || true")
-        ruff_output = ruff_result.output.strip() if hasattr(ruff_result, "output") else ""
-        if ruff_output:
-            issues.append(f"ruff: {ruff_output[:200]}")
+        if _cmd_exit_code(ruff_result) != 0:
+            issues.append(f"ruff check failed (exit code {_cmd_exit_code(ruff_result)})")
     except Exception as e:
         issues.append(f"ruff check failed: {e}")
 
     try:
         mypy_result = backend.execute("mypy . 2>&1 || true")
-        mypy_output = mypy_result.output.strip() if hasattr(mypy_result, "output") else ""
-        if mypy_output:
-            issues.append(f"mypy: {mypy_output[:200]}")
+        if _cmd_exit_code(mypy_result) != 0:
+            issues.append(f"mypy check failed (exit code {_cmd_exit_code(mypy_result)})")
     except Exception as e:
         issues.append(f"mypy check failed: {e}")
 
@@ -89,7 +93,7 @@ def gate_sandbox_verification(backend, code_output: CodeOutput) -> GateResult:
     issues = []
     for fc in code_output.files_created:
         try:
-            result = backend.execute(f"test -f {fc.path} && echo 'EXISTS' || echo 'MISSING'")
+            result = backend.execute(f"test -f {shlex.quote(fc.path)} && echo 'EXISTS' || echo 'MISSING'")
             output = result.output.strip() if hasattr(result, "output") else ""
             if "MISSING" in output:
                 issues.append(f"Expected file not found: {fc.path}")
@@ -98,7 +102,8 @@ def gate_sandbox_verification(backend, code_output: CodeOutput) -> GateResult:
 
     for dep in code_output.dependencies_installed:
         try:
-            import_result = backend.execute(f"python -c 'import {dep.split('==')[0]}' 2>&1")
+            pkg = dep.split("==")[0]
+            import_result = backend.execute(f"python -c 'import {shlex.quote(pkg)}' 2>&1")
             output = import_result.output.strip() if hasattr(import_result, "output") else ""
             if output and "error" in output.lower():
                 issues.append(f"Dependency import failed: {dep}")
