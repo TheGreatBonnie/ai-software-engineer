@@ -1,6 +1,6 @@
 from src.models import (
     Plan, CodeOutput, TestSuiteResult,
-    ReviewFindings, DocOutput, GateResult,
+    DocOutput, GateResult,
 )
 
 
