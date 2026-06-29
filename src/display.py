@@ -182,3 +182,47 @@ class AgentDisplay:
                     self.console.print(f"  {icon} Grep: [dim]{pat[:40]}[/]")
             else:
                 self.console.print(f"  [dim]→ {name}(...)[/]")
+
+    def on_phase_start(self, data: dict) -> None:
+        phase = data.get("phase", "")
+        label = data.get("label", phase.capitalize())
+        color = data.get("color", "white")
+        icon = {"plan": "📋", "code": "💻", "test": "🧪",
+                 "review": "👁️", "fix": "🔧", "document": "📝"}.get(phase, "⚙️")
+        self.console.print(f"\n  [bold {color}]{icon} Phase: {label}[/]")
+        self.current_phase = label
+        self.update_status(f"{icon} {label}...")
+
+    def on_gate_result(self, data: dict) -> None:
+        gate = data.get("gate", "")
+        result = data.get("result")
+        if result is None:
+            return
+        icon = "✓" if result.passed else "✗"
+        color = "green" if result.passed else "red" if result.severity == "blocking" else "yellow"
+        self.console.print(f"  [{color}]{icon} Gate: {gate}[/]")
+        for issue in result.issues:
+            self.console.print(f"    [{color}]• {issue[:120]}[/]")
+
+    def on_phase_output(self, data: dict) -> None:
+        phase = data.get("phase", "")
+        output = data.get("output")
+        if output is None:
+            return
+        if phase == "test" and hasattr(output, "passed"):
+            self.console.print(
+                f"  [{'green' if output.failed == 0 else 'yellow'}]"
+                f"Tests: {output.passed} passed, {output.failed} failed"
+                f"{f', {output.coverage_pct:.0f}% coverage' if output.coverage_pct else ''}[/]"
+            )
+
+    def on_pipeline_complete(self, result) -> None:
+        status_color = {
+            "completed": "green",
+            "failed": "red",
+            "escalated": "yellow",
+        }.get(result.status, "white")
+        self.console.print(
+            f"\n  [bold {status_color}]Pipeline {result.status}"
+            f" ({result.iterations_used} iteration(s), {result.elapsed_seconds:.1f}s)[/]"
+        )
