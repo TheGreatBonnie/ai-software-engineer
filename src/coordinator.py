@@ -6,7 +6,7 @@ from deepagents import create_deep_agent
 from langchain_openrouter import ChatOpenRouter
 
 from src.config import Settings
-from src.models import Plan
+from src.models import Plan, CodeOutput, TestSuiteResult, ReviewFindings, DocOutput
 from src.prompts import (
     COORDINATOR_PROMPT,
     PLANNER_PROMPT,
@@ -40,6 +40,7 @@ def build_coordinator(
             "Installs dependencies and validates code compiles."
         ),
         "system_prompt": CODER_PROMPT,
+        "response_format": CodeOutput,
     }
 
     tester_subagent = {
@@ -49,6 +50,7 @@ def build_coordinator(
             "pass/fail results with full error output."
         ),
         "system_prompt": TESTER_PROMPT,
+        "response_format": TestSuiteResult,
     }
 
     reviewer_subagent = {
@@ -58,6 +60,7 @@ def build_coordinator(
             "Detects hallucinations and produces concrete fix suggestions."
         ),
         "system_prompt": REVIEWER_PROMPT,
+        "response_format": ReviewFindings,
     }
 
     documenter_subagent = {
@@ -67,6 +70,7 @@ def build_coordinator(
             "for a completed project."
         ),
         "system_prompt": DOCUMENTER_PROMPT,
+        "response_format": DocOutput,
     }
 
     agent = create_deep_agent(

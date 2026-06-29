@@ -216,6 +216,23 @@ class AgentDisplay:
                 f"{f', {output.coverage_pct:.0f}% coverage' if output.coverage_pct else ''}[/]"
             )
 
+    def on_stream_chunk(self, chunk: dict) -> None:
+        if chunk.get("type") != "updates":
+            return
+        data = chunk.get("data")
+        if data is None:
+            return
+        for node_name, node_data in data.items():
+            if node_data is None:
+                continue
+            messages = node_data.get("messages")
+            if not messages:
+                continue
+            from langchain_core.messages import AIMessage, ToolMessage
+            for msg in messages:
+                if isinstance(msg, (AIMessage, ToolMessage)):
+                    self.print_message(msg)
+
     def on_pipeline_complete(self, result) -> None:
         status_color = {
             "completed": "green",

@@ -57,10 +57,6 @@ def gate_plan_review(plan: Plan) -> GateResult:
     )
 
 
-def _cmd_exit_code(result) -> int:
-    return getattr(result, "exit_code", 0) if result else -1
-
-
 def gate_static_analysis(backend) -> GateResult:
     if not backend:
         return GateResult(
@@ -70,16 +66,20 @@ def gate_static_analysis(backend) -> GateResult:
         )
     issues = []
     try:
-        ruff_result = backend.execute("ruff check . 2>&1 || true")
-        if _cmd_exit_code(ruff_result) != 0:
-            issues.append(f"ruff check failed (exit code {_cmd_exit_code(ruff_result)})")
+        result = backend.execute("ruff check . 2>&1")
+        exit_code = getattr(result, "exit_code", 0) if result else 0
+        output = result.output.strip() if hasattr(result, "output") else ""
+        if exit_code != 0:
+            issues.append(f"ruff: {output[:200]}")
     except Exception as e:
         issues.append(f"ruff check failed: {e}")
 
     try:
-        mypy_result = backend.execute("mypy . 2>&1 || true")
-        if _cmd_exit_code(mypy_result) != 0:
-            issues.append(f"mypy check failed (exit code {_cmd_exit_code(mypy_result)})")
+        result = backend.execute("mypy . 2>&1")
+        exit_code = getattr(result, "exit_code", 0) if result else 0
+        output = result.output.strip() if hasattr(result, "output") else ""
+        if exit_code != 0:
+            issues.append(f"mypy: {output[:200]}")
     except Exception as e:
         issues.append(f"mypy check failed: {e}")
 

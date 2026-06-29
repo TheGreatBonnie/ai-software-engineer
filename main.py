@@ -62,6 +62,7 @@ def main() -> None:
         display = AgentDisplay(console)
 
         pipeline.on("phase_start", display.on_phase_start)
+        pipeline.on("stream_chunk", display.on_stream_chunk)
         pipeline.on("gate_result", display.on_gate_result)
         pipeline.on("phase_output", display.on_phase_output)
         pipeline.on("pipeline_complete", display.on_pipeline_complete)

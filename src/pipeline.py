@@ -5,8 +5,8 @@ from typing import Any, Callable
 from src.config import Settings
 from src.coordinator import build_coordinator
 from src.models import (
-    Plan, CodeOutput, FileChange,
-    TestSuiteResult, ReviewFindings, ReviewIssue,
+    Plan, CodeOutput,
+    TestSuiteResult, ReviewFindings,
     DocOutput, GateResult, PipelineResult,
 )
 from src.gates import (
